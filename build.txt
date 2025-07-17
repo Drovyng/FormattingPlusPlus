@@ -1,0 +1,4 @@
+displayName = FormattingPlusPlus
+author = Drovyng
+version = 0.1
+side = Client
