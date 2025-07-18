@@ -15,10 +15,9 @@ namespace FormattingPlusPlus
                 if (!int.TryParse(o[i], System.Globalization.NumberStyles.AllowHexSpecifier, null, out int result)) return new TextSnippet(text);
                 colors[i - 2] = new Color((result >> 16) & 0xFF, (result >> 8) & 0xFF, result & 0xFF);
             }
-            var s = new MultipleSnippets(new());
-            for (int i = 0; i < text.Length; i++) s.snippets.Add(new GradientSnippet(text[i] + "", colors, size == 0 ? 0 : (float)i / size, speed == 0 ? 0 : 10f / speed));
+            var s = new MultipleSnippets(new() { new() });
+            for (int i = 0; i < text.Length; i++) s.snippets.Add(new GradientSnippet(text[i] + "", colors, size == 0 ? 0 : (float)i / size, speed * 0.1f));
             return s;
         }
     }
-
 }

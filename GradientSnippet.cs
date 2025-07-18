@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
-using System.Linq;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.ModLoader.UI;
 using Terraria.UI.Chat;
 
 namespace FormattingPlusPlus
@@ -10,6 +11,7 @@ namespace FormattingPlusPlus
         public Color[] colors;
         public float offset;
         public float speed;
+        public string url;
         public GradientSnippet(string text, Color[] colors, float offset, float speed)
         {
             this.colors = colors;
@@ -17,6 +19,12 @@ namespace FormattingPlusPlus
             this.speed = speed;
             Color = Color.White;
             Text = TextOriginal = text;
+        }
+        public void SetURL(string _url)
+        {
+            if (!_url.Contains("://")) url = "https://" + _url;
+            else url = _url;
+            CheckForHover = true;
         }
         public override void Update()
         {
@@ -26,6 +34,14 @@ namespace FormattingPlusPlus
                 colors[(int)(l + 1) % colors.Length],
                 l % 1f
             );
+        }
+        public override void OnClick()
+        {
+            if (url != null) Utils.OpenToURL(url);
+        }
+        public override void OnHover()
+        {
+            if (url != null) UICommon.TooltipMouseText(url);
         }
     }
 }

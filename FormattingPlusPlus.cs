@@ -1,9 +1,5 @@
 using Microsoft.Xna.Framework;
-using Newtonsoft.Json.Linq;
-using Steamworks;
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Terraria.GameContent.UI.Chat;
 using Terraria.ModLoader;
@@ -18,8 +14,7 @@ namespace FormattingPlusPlus
     }
 	public class FormattingPlusPlus : Mod
 	{
-        public const string SpecialCharacters = "\\[]";
-        public const string Handlers = "cinag";
+        public const string SpecialCharacters = "\\[]:";
         public override void Load()
         {
             On_ChatManager.ParseMessage += CustomParser;
@@ -30,6 +25,7 @@ namespace FormattingPlusPlus
             Singleton<GlyphTagHandler>.Instance = new();
             Singleton<LocalizationTagHandler>.Instance = new();
             Singleton<TransitionTagHandler>.Instance = new();
+            Singleton<URLTagHandler>.Instance = new();
         }
         private static List<TextSnippet> CustomParser(On_ChatManager.orig_ParseMessage orig, string text, Color baseColor)
         {
@@ -54,9 +50,23 @@ namespace FormattingPlusPlus
                         handler = char.ToLower(c); state++;
                         break;
                     case 2:
+                        if (hide)
+                        {
+                            hide = false;
+                            if (SpecialCharacters.Contains(c)) { options += c; break; }
+                            else { options += "\\"; break; }
+                        }
+                        else if (c == '\\') { hide = true; break; }
                         if (c == ':') { 
-                            state++; 
+                            state++;
+                            hide = false;
                             if (options.StartsWith("/")) options = options.Substring(1); 
+                            break;
+                        }
+                        if (c == ']')
+                        {
+                            state++;
+                            i--;
                             break;
                         }
                         options += c;
@@ -64,30 +74,66 @@ namespace FormattingPlusPlus
                     default:
                         if (hide)
                         {
-                            if (!SpecialCharacters.Contains(c)) break;
-                            else buffer += "\\" + c;
+                            hide = false;
+                            if (SpecialCharacters.Contains(c)) { buffer += c; break; }
+                            else buffer += "\\";
                         }
                         else if (c == '\\') { hide = true; break; }
                         if (c == '[')
                         {
+                            hide = false;
                             if (state == -1) snippets.Add(new TextSnippet(buffer, color));
-                            else if (handler == 'c') snippets.Add(Singleton<ColorTagHandler>.Parse(buffer, color, options));
-                            else if (handler != 't') snippets.Add(new TextSnippet("[" + handler + options + ":" + buffer, color));
+                            //else if (handler == 'c') snippets.Add(Singleton<ColorTagHandler>.Parse(buffer, color, options));
+                            //else if (handler != 't') snippets.Add(new TextSnippet("[" + handler + options + ":" + buffer, color));
                             color = snippets[snippets.Count - 1].Color;
                             buffer = "";
                             var iNew = Parse(ref text, i+1, ref snippets, color);
                             if (iNew.HasValue) { 
                                 i = iNew.Value;
-                                if (handler == 't' || snippets[snippets.Count - 1] is LocalizationTagHandler.LocalizationSnippet)
+                                var l = snippets[snippets.Count - 1];
+                                if (handler == 't' || handler == 'u' || l is LocalizationTagHandler.LocalizationSnippet)
                                 {
-                                    buffer += snippets[snippets.Count - 1].Text;
-                                    snippets.RemoveAt(snippets.Count - 1);
+                                    if (handler == 'u')
+                                    {
+                                        if (l is GradientSnippet)
+                                        {
+                                            int j = 1;
+                                            while (l is GradientSnippet g)
+                                            {
+                                                g.SetURL(options);
+                                                j++;
+                                                l = snippets[snippets.Count - j];
+                                            }
+                                        }
+                                        else
+                                        {
+                                            snippets[snippets.Count - 1] = new URLTagHandler.URLSnippet(l.Text, l.Color, options);
+                                        }
+                                        break;
+                                    }
+                                    if (l is GradientSnippet)
+                                    {
+                                        string revb = "";
+                                        while (l is GradientSnippet g)
+                                        {
+                                            l = snippets[snippets.Count - 1];
+                                            revb = l.Text + revb;
+                                            snippets.RemoveAt(snippets.Count - 1);
+                                        }
+                                        buffer += revb;
+                                    }
+                                    else
+                                    {
+                                        buffer += l.Text;
+                                        snippets.RemoveAt(snippets.Count - 1);
+                                    }
                                 }
                                 break; 
                             }
                         }
                         if (c == ']' && state != -1)
                         {
+                            hide = false;
                             if (state == -1) snippets.Add(new TextSnippet(buffer, color));
                             else
                             {
@@ -103,6 +149,7 @@ namespace FormattingPlusPlus
                 }
                 i++;
             }
+            if (hide) buffer += "\\";
             if (buffer.Length != 0 && state == -1) snippets.Add(new TextSnippet(buffer, color));
             return null;
         }
@@ -117,6 +164,7 @@ namespace FormattingPlusPlus
                 'g' => Singleton<GlyphTagHandler>.Parse(text, color, options),
                 'l' => Singleton<LocalizationTagHandler>.Parse(text, color, options),
                 't' => Singleton<TransitionTagHandler>.Parse(text, color, options),
+                'u' => Singleton<URLTagHandler>.Parse(text, color, options),
                 _ => null
             };
         }
