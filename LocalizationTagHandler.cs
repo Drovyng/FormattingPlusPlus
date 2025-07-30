@@ -11,7 +11,23 @@ namespace FormattingPlusPlus
         TextSnippet ITagHandler.Parse(string text, Color baseColor, string options)
         {
             if (options.Length == 0) return new TextSnippet(text, baseColor);
-            return new LocalizationSnippet(Language.GetTextValue(options, Split(text)), baseColor);
+            string t = "";
+            try
+            {
+                t = Language.GetTextValue(options, Split(text));
+            }
+            catch
+            {
+                try
+                {
+                    t = Language.GetTextValue(options);
+                }
+                catch
+                {
+                    t = "<" + options + ">";    // I can do in in initialization, but i do it here ;)
+                }
+            }
+            return new LocalizationSnippet(t, baseColor);
         }
         public string[] Split(string text)
         {
@@ -32,7 +48,8 @@ namespace FormattingPlusPlus
             }
             if (hide) result[0] += "\\";
             if (result[0].Length == 0) result.RemoveAt(0);
-            return result.ToArray();
+            result.Reverse();
+            return result.ToArray();    // I do not want to rewrite code, so i just reverse list XD
         }
     }
 

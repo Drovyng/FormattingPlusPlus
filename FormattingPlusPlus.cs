@@ -40,6 +40,7 @@ namespace FormattingPlusPlus
             string buffer = "";
             bool hide = false;
             int state = i == -1 ? -1 : 1;
+            TextSnippet pre = null;
             if (state == -1) i++;
             while (i < text.Length)
             {
@@ -65,6 +66,7 @@ namespace FormattingPlusPlus
                         }
                         if (c == ']')
                         {
+                            if (options.StartsWith("/")) options = options.Substring(1);
                             state++;
                             i--;
                             break;
@@ -81,17 +83,28 @@ namespace FormattingPlusPlus
                         else if (c == '\\') { hide = true; break; }
                         if (c == '[')
                         {
+                            if (handler == 'l' && pre != null)
+                            {
+                                buffer = pre.Text + buffer;
+                                snippets.Remove(pre);
+                            }
+                            if (handler == 'c')
+                            {
+                                pre = Singleton<ColorTagHandler>.Parse(buffer, color, options);
+                            }
+                            else pre = new TextSnippet(buffer, color);
+                            snippets.Add(pre);
                             hide = false;
-                            if (state == -1) snippets.Add(new TextSnippet(buffer, color));
-                            //else if (handler == 'c') snippets.Add(Singleton<ColorTagHandler>.Parse(buffer, color, options));
-                            //else if (handler != 't') snippets.Add(new TextSnippet("[" + handler + options + ":" + buffer, color));
                             color = snippets[snippets.Count - 1].Color;
+                            var lastBuffer = buffer;
                             buffer = "";
+                            var s = snippets.ToList();
                             var iNew = Parse(ref text, i+1, ref snippets, color);
                             if (iNew.HasValue) { 
                                 i = iNew.Value;
+
                                 var l = snippets[snippets.Count - 1];
-                                if (handler == 't' || handler == 'u' || l is LocalizationTagHandler.LocalizationSnippet)
+                                if (handler == 't' || handler == 'u' || handler == 'l' || l is LocalizationTagHandler.LocalizationSnippet)
                                 {
                                     if (handler == 'u')
                                     {
@@ -121,27 +134,30 @@ namespace FormattingPlusPlus
                                             snippets.RemoveAt(snippets.Count - 1);
                                         }
                                         buffer += revb;
+                                        break;
                                     }
-                                    else
-                                    {
-                                        buffer += l.Text;
-                                        snippets.RemoveAt(snippets.Count - 1);
-                                    }
+                                    buffer += l.Text;
+                                    snippets.Remove(l);
                                 }
                                 break; 
                             }
+                            buffer = lastBuffer;
+                            snippets = s;
                         }
                         if (c == ']' && state != -1)
                         {
                             hide = false;
-                            if (state == -1) snippets.Add(new TextSnippet(buffer, color));
-                            else
+
+                            if (handler == 'l' && pre != null)
                             {
-                                var s = ParseInternal(handler, buffer, color, options);
-                                if (s == null) return null;
-                                if (s is MultipleSnippets ms) snippets.AddRange(ms.snippets);
-                                else snippets.Add(s);
+                                buffer = pre.Text + buffer;
+                                snippets.Remove(pre);
                             }
+
+                            var s = ParseInternal(handler, buffer, color, options);
+                            if (s == null) return null;
+                            if (s is MultipleSnippets ms) snippets.AddRange(ms.snippets);
+                            else snippets.Add(s);
                             return i;
                         }
                         buffer += c;
@@ -151,6 +167,7 @@ namespace FormattingPlusPlus
             }
             if (hide) buffer += "\\";
             if (buffer.Length != 0 && state == -1) snippets.Add(new TextSnippet(buffer, color));
+            if (state != -1) snippets.Remove(pre);
             return null;
         }
         private static TextSnippet ParseInternal(char handler, string text, Color color, string options)
