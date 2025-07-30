@@ -9,6 +9,7 @@ One color tag inside another: [b][noparse] [c/FF88BB:Pink 1 [c/00FFFF:Blue 2 [c/
 
 [h2]Transition Tag [b](NEW!!!)[/b][/h2]
 Using: [b][noparse] [t/[/noparse][i]speed[/i][noparse]/[/noparse][i]size[/i][noparse]/[/noparse][i]hex colors[/i][noparse]:[/noparse][i]inside[/i][noparse]][/noparse][/b]
+
 Moving: [b][noparse] [t/30/10/44FFFF/44FF44/FF88FF:This is a moving gradient! This is a moving gradient!] [/noparse][/b]
 [img=https://raw.githubusercontent.com/Drovyng/FormattingPlusPlus/refs/heads/master/PREVIEWS/TransitionMoving.gif][/img]
 Static (speed is 0): [b][noparse] [t/0/10/44FFFF/44FF44/FF88FF:This is a static gradient! This is a static gradient!] [/noparse][/b]
@@ -23,6 +24,7 @@ Google Example: [b][noparse] [u/https\://google.com:Link to Google website] [/no
 [h2]Localization Tag [b](NEW!!!)[/b][/h2]
 Using: [b][noparse] [l/[/noparse][i]lang_path[/i][noparse]][/noparse][/b]
 Using: [b][noparse] [l/[/noparse][i]lang_path[/i][noparse]:[/noparse][i]argument[/i]/[i]argument[/i]/[i]argument[/i][noparse]][/noparse][/b]
+
 Without arguments: [b][noparse] [l/GameTitle.57] [/noparse][/b]
 [img=https://raw.githubusercontent.com/Drovyng/FormattingPlusPlus/refs/heads/master/PREVIEWS/LocalizationNoArgs.gif][/img]
 Formatting with arguments: [b][noparse] [l/DeathText.Space_5:Drovyng/This World] [/noparse][/b]
