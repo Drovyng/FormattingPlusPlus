@@ -1,5 +1,3 @@
-This description will show up on the steam page, check out https://steamcommunity.com/comment/Guide/formattinghelp.
-
 [h1]What does this mod do?[/h1]
 This mod completely rewrites Terraria's vanilla chat formatter, allowing tags to be included within each other. It also fixes some bugs and [b]adds new tags[/b] that will be [b]especially useful for modders[/b], as well as regular players.
 
